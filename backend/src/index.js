@@ -24,6 +24,17 @@ app.get("/api/colors", (_req, res) => {
   }
 });
 
+app.delete('/api/forms/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    await prisma.form.delete({ where: { id } });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    res.status(404).json({ ok: false, message: 'Form bulunamadı' });
+  }
+});
+
 app.get("/api/cities", (_req, res) => {
   try {
     res.json(CITIES.map(n => ({ text: n, value: n })));
