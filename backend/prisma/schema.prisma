@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Form {
+  id          Int          @id @default(autoincrement())
+  name        String
+  schema      Json
+  submissions Submission[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Submission {
+  id        Int      @id @default(autoincrement())
+  formId    Int
+  form      Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  payload   Json
+  createdAt DateTime @default(now())
+}
