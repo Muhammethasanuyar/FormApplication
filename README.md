@@ -2,6 +2,7 @@
 
 Modern Form Builder, React ve Node.js teknolojileri kullanılarak geliştirilmiş, profesyonel bir form oluşturma ve yönetim platformudur. Sürükle-bırak arayüzü ile kolayca formlar oluşturabilir, gönderileri takip edebilir ve özelleştirilebilir renk temaları ile kullanıcı deneyimini geliştirebilirsiniz.
 
+
 ## ✨ Özellikler
 
 ### 🎨 Form Oluşturma ve Tasarım
@@ -260,9 +261,7 @@ DATABASE_URL="mysql://user:password@prod-host:3306/form_builder"
 PORT=4000
 NODE_ENV=production
 
-# Frontend
-VITE_API_URL="https://api.yourdomain.com"
-```
+FORM LİNKİ : http://localhost:5173/forms/2 
 
 ## 📞 İletişim
 
