@@ -141,6 +141,7 @@ npm run dev
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:4000
 - **Prisma Studio**: `npm run prisma:studio` (http://localhost:5555)
+- **Örnek Form**: http://localhost:5173/forms/2 (Uygulama çalıştıktan sonra)
 
 ## 📋 API Endpoints
 
@@ -160,6 +161,9 @@ npm run dev
 - `GET /api/health` - API sağlık kontrolü
 
 ## 🎨 Kullanım Kılavuzu
+
+### Hızlı Başlangıç
+Uygulama çalıştıktan sonra doğrudan örnek formu görmek için: **http://localhost:5173/forms/2**
 
 ### Form Oluşturma
 1. Ana sayfada "Örnek Form Oluştur" butonuna tıklayın
@@ -261,7 +265,6 @@ DATABASE_URL="mysql://user:password@prod-host:3306/form_builder"
 PORT=4000
 NODE_ENV=production
 
-FORM LİNKİ : http://localhost:5173/forms/2 
 
 ## 📞 İletişim
 
