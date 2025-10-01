@@ -1,0 +1,59 @@
+/* Builder – toolbox SAĞDA, preview SOLDa */
+.rfb-wrap .react-form-builder{
+  display:grid !important;
+  grid-template-columns: 1fr 320px; /* preview | toolbox */
+  gap:18px; align-items:flex-start;
+}
+
+/* Bootstrap kolon etkisini nötrle */
+.rfb-wrap .react-form-builder > [class*="col-"],
+.rfb-wrap .react-form-builder-toolbar,
+.rfb-wrap .react-form-builder-preview{
+  float:none !important; width:auto !important; max-width:none !important;
+}
+
+/* Toolbox sağ sütun + sticky */
+.rfb-wrap .react-form-builder-toolbar,
+.rfb-wrap .col-md-3.react-form-builder-toolbar.float-right{
+  grid-column:2 !important; position:sticky; top:82px;
+  height:calc(100dvh - 102px); overflow:auto;
+
+  background:#fff !important; color:#0f1220 !important;
+  border:1px solid #e2e8f0 !important; border-radius:12px !important;
+  padding:10px !important; box-shadow:0 6px 20px rgba(15,18,32,.06);
+}
+.rfb-wrap .toolbar-header{ color:#0f1220 !important; font-weight:700 !important; letter-spacing:.2px; }
+.rfb-wrap .react-form-builder-toolbar li,
+.rfb-wrap .react-form-builder-toolbar .btn{
+  background:#fff !important; color:#0f1220 !important;
+  border:1px dashed #cbd5e1 !important; border-radius:10px !important;
+  padding:10px 12px !important; margin-bottom:8px !important;
+}
+.rfb-wrap .react-form-builder-toolbar li:hover{
+  background:#f8fafc !important; border-color:#94a3b8 !important;
+}
+
+/* Preview sol sütun */
+.rfb-wrap .react-form-builder-preview{
+  grid-column:1 !important; min-width:0;
+  background:#fff !important; color:#0f1220 !important;
+  border:1px solid #dbe1ea !important; border-radius:12px !important; padding:8px !important;
+}
+
+/* Renk paleti */
+.color-palette-slot{ margin-top:8px; }
+.color-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+.color-grid.inline{ margin-top:6px; }
+.color-swatch{ display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:#fff; padding:10px; border-radius:10px; cursor:pointer; transition:transform .12s, box-shadow .12s, border-color .12s; }
+.color-swatch:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(16,24,40,.06); }
+.color-swatch.selected{ border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-weak); }
+.color-box{ width:20px; height:20px; border-radius:4px; border:1px solid rgba(0,0,0,.08); }
+.color-name{ font-weight:600; }
+
+/* mobilde alt alta */
+@media (max-width: 900px){
+  .rfb-wrap .react-form-builder{ grid-template-columns: 1fr !important; }
+  .rfb-wrap .react-form-builder-toolbar,
+  .rfb-wrap .react-form-builder-preview{ grid-column:1 !important; }
+  .rfb-wrap .react-form-builder-toolbar{ position: static; height: auto; margin-bottom: 12px; }
+}

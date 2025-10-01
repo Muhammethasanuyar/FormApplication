@@ -1,0 +1,5 @@
+:root{
+  --bg:#f6f7fb; --surface:#ffffff; --text:#0f1220; --muted:#667085;
+  --line:#e5e7eb; --brand:#3b82f6; --brand-weak:#e8f0fe; --ok:#16a34a;
+  --radius:16px; --shadow:0 10px 35px rgba(16,24,40,.08);
+}

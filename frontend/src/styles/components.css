@@ -1,0 +1,34 @@
+.app-shell{min-height:100%;display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface);border-bottom:1px solid var(--line);padding:12px 18px;box-shadow:0 4px 16px rgba(16,24,40,.05)
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}.brand .fa{color:var(--brand)}
+.nav{display:flex;gap:10px}.navlink{color:#334155;text-decoration:none;padding:8px 12px;border-radius:10px}
+.navlink:hover{background:#f1f5f9}
+.page{padding:20px;display:grid;place-items:start}
+
+.card{
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);box-shadow:var(--shadow);padding:16px
+}
+.form-card{ width:min(860px,94vw); margin:12px auto; overflow:hidden; }
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+.actions{display:flex;gap:10px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid var(--line);
+  color:var(--text);padding:10px 14px;border-radius:12px;cursor:pointer;transition:.2s
+}
+.btn:hover{transform:translateY(-1px)}
+.btn.primary{background:var(--brand);border-color:transparent;color:#fff}
+.btn.ghost{background:transparent}
+.success-ico{font-size:44px;color:var(--ok);margin-bottom:8px}
+.generator-wrap{ border:1px solid var(--line); border-radius:12px; padding:12px; background:#fff; }
+
+.inline-fields{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.f-radio{ display:inline-flex; align-items:center; gap:8px; padding:4px 8px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+.f-radio input[type="radio"]{ margin:0; position:static; }
+.f-radio span{ margin:0; line-height:1.2; }
+
+:root, body, .card, .btn, .topbar{ transition: background-color .25s, color .25s, border-color .25s; }
