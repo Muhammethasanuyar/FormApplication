@@ -10,7 +10,7 @@ export default function App(){
         <div className="brand"><i className="fa fa-wpforms" /> Form Builder</div>
         <nav className="nav">
           <Link className="navlink" to="/">Formlar</Link>
-          <a className="navlink" href="https://github.com/" target="_blank" rel="noreferrer">GitHub</a>
+          <a className="navlink" href="https://github.com/Muhammethasanuyar" target="_blank" rel="noreferrer">GitHub</a>
         </nav>
       </header>
 
