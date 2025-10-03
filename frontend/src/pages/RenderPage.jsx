@@ -6,16 +6,13 @@ import { createPortal } from 'react-dom'
 
 // --- renk dropdown'unu DOM'da bul ---
 function findFavControl(root, favName = 'fav_color') {
-  // 1) field_name = fav_color
   let el =
     root.querySelector(`select[name="${favName}"], input[name="${favName}"]`) ||
-    // 2) class = favorite-color
-    root.querySelector('.favorite-color select, .favorite-color input');
+    root.querySelector('.favorite-color select, .favorite-color input')
 
   if (!el) {
-    // 3) label fallback (TR/EN)
     const grp = Array.from(root.querySelectorAll('.form-group')).find((g) => {
-      const t = (g.querySelector('label')?.textContent || '').toLowerCase().trim();
+      const t = (g.querySelector('label')?.textContent || '').toLowerCase().trim()
       return (
         t === 'sevdiğin renk' ||
         t === 'sevdigin renk' ||
@@ -23,13 +20,12 @@ function findFavControl(root, favName = 'fav_color') {
         t.includes('sevdi') ||
         t.includes('color') ||
         t.includes('renk')
-      );
-    });
-    el = grp?.querySelector('select, input') || null;
+      )
+    })
+    el = grp?.querySelector('select, input') || null
   }
-  return el;
+  return el
 }
-
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
@@ -54,6 +50,12 @@ const applyTheme = (hex) => {
   document.documentElement.style.setProperty('--brand-weak', `rgba(${rgb.r},${rgb.g},${rgb.b},0.15)`)
 }
 
+/* --- dropdown value <-> hex yardımcıları (YENİ) --- */
+const getHex = (v = '') => String(v).split('|')[0]?.trim()
+const slugify = (s = '') =>
+  s.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+const makeVal = (hex, name) => `${hex}|${slugify(name || 'renk')}`
+
 /* ========== Options/Schema normalize ========== */
 const sanitizeOptions = (opts = []) => {
   let normalized = (opts || [])
@@ -66,7 +68,6 @@ const sanitizeOptions = (opts = []) => {
     })
     .filter((o) => o && o.value)
 
-  // benzersiz değerler
   const seen = new Set()
   normalized = normalized.map((o) => {
     let v = o.value
@@ -149,8 +150,10 @@ export default function RenderPage() {
   const [university, setUniversity] = useState('')
 
   const generatorRef = useRef(null)
-  const [paletteMount, setPaletteMount] = useState(null) // dropdown altı slot
-  const favName = 'fav_color' // Builder’da bu field_name’i kullan
+  const [paletteMount, setPaletteMount] = useState(null)
+  const favName = 'fav_color'
+
+  const idCounterRef = useRef(0)
 
   /* ---- Verileri çek ---- */
   useEffect(() => {
@@ -168,35 +171,78 @@ export default function RenderPage() {
         mounted && setErr('Form veya renkler yüklenemedi.')
       })
       .finally(() => mounted && setLoading(false))
-    return () => {
-      mounted = false
-    }
+    return () => { mounted = false }
   }, [id])
 
-  /* ---- Schema patch (renk options) ---- */
+  /* ---- Schema patch (renk options + Hobiler çoklu seçim) ---- */
   const schema = useMemo(() => {
     if (!form) return []
+
     const base = Array.isArray(form.schema)
       ? form.schema
-      : typeof form.schema === 'string'
-      ? JSON.parse(form.schema || '[]')
-      : form.schema?.data || []
+      : (typeof form.schema === 'string'
+          ? JSON.parse(form.schema || '[]')
+          : (form.schema?.data || []))
 
     if (!base?.length) return base
     const list = JSON.parse(JSON.stringify(base))
 
-    // renk dropdown'unu colors ile doldur
-    if (colors?.length) {
-      const idx = list.findIndex(
-        (f) =>
-          (f.field_name && String(f.field_name).toLowerCase() === favName) ||
-          (f.class_name && String(f.class_name).includes('favorite-color')) ||
-          /favorite.*color|color|renk/i.test(f.field_name || '') ||
-          /renk/i.test(f.label || '')
-      )
-      if (idx >= 0) {
-        list[idx].options = colors.map((c) => ({ text: c.text, value: c.value }))
-      }
+    // (YENİ) Aynı HEX'e sahip farklı isimleri de koruyarak birleştir
+    const mergeByHexKeepNames = (a = [], b = []) => {
+      const norm = (arr) => sanitizeOptions(arr).map(o => ({ text: o.text, value: o.value }))
+      const out = []
+      const seenNameVal = new Set()
+      const hexNames = new Map() // hex -> Set(names)
+
+      ;[...norm(a), ...norm(b)].forEach(opt => {
+        const hex = getHex(opt.value)
+        if (!/^#([A-Fa-f0-9]{6})$/.test(hex)) return
+        const name = opt.text || 'Renk'
+
+        let val = hex
+        if (hexNames.has(hex)) {
+          const names = hexNames.get(hex)
+          if (!names.has(name)) {
+            val = makeVal(hex, name) // benzersiz value: "#xxxxxx|ad"
+            names.add(name)
+          }
+        } else {
+          hexNames.set(hex, new Set([name]))
+        }
+
+        const key = `${name}|${val}`
+        if (!seenNameVal.has(key)) {
+          seenNameVal.add(key)
+          out.push({ text: name, value: val })
+        }
+      })
+      return out
+    }
+
+    // 1) Renk alanını doldur/merge et
+    const colorIdx = list.findIndex(f =>
+      (f.field_name && String(f.field_name).toLowerCase() === 'fav_color') ||
+      (f.class_name && String(f.class_name).includes('favorite-color')) ||
+      /favorite.*color|color|renk/i.test(f.field_name || '') ||
+      /renk/i.test(f.label || '')
+    )
+    if (colorIdx >= 0) {
+      const existing = list[colorIdx].options || []
+      const fromApi  = (colors || []).map(c => ({ text: c.text || c.name, value: c.value }))
+      list[colorIdx].options = mergeByHexKeepNames(existing, fromApi)
+    }
+
+    // 2) Hobi → çoklu (Checkboxes)
+    const hIdx = list.findIndex(f => {
+      const fn = String(f.field_name || '').toLowerCase()
+      const lb = String(f.label || '').toLowerCase()
+      return /hobi|hobby|hobiler|hobbies/.test(fn) || /hobi|hobby|hobiler|hobbies/.test(lb)
+    })
+    if (hIdx >= 0) {
+      list[hIdx].element = 'Checkboxes'
+      list[hIdx].options = sanitizeOptions(list[hIdx].options || [])
+      if (String(list[hIdx].field_name || '').toLowerCase() === 'hobby') list[hIdx].field_name = 'hobbies'
+      if (!list[hIdx].label || /hobi|hobby/i.test(list[hIdx].label)) list[hIdx].label = 'Hobiler'
     }
 
     return sanitizeSchema(list)
@@ -204,118 +250,189 @@ export default function RenderPage() {
 
   /* ---- Renk dropdown’unu bul, ALTINA slot yerleştir ---- */
   useEffect(() => {
-  const root = generatorRef.current || document;
+    const root = generatorRef.current || document
 
-  const placeSlot = () => {
-    const el = findFavControl(root, 'fav_color'); // <— ORTAK FONKSİYON
-    if (!el) { setPaletteMount(null); return; }
+    const placeSlot = () => {
+      const el = findFavControl(root, 'fav_color')
+      if (!el) { setPaletteMount(null); return }
 
-    const group = el.closest('.form-group') || el.parentElement;
-    if (!group) { setPaletteMount(null); return; }
+      const group = el.closest('.form-group') || el.parentElement
+      if (!group) { setPaletteMount(null); return }
 
-    let slot = group.parentElement?.querySelector(':scope > .color-palette-slot');
-    if (!slot) {
-      slot = document.createElement('div');
-      slot.className = 'color-palette-slot';
-      if (group.nextSibling) group.parentElement.insertBefore(slot, group.nextSibling);
-      else group.parentElement.appendChild(slot);
+      let slot = group.parentElement?.querySelector(':scope > .color-palette-slot')
+      if (!slot) {
+        slot = document.createElement('div')
+        slot.className = 'color-palette-slot'
+        if (group.nextSibling) group.parentElement.insertBefore(slot, group.nextSibling)
+        else group.parentElement.appendChild(slot)
+      }
+      setPaletteMount(slot)
+
+      // (DEĞİŞTİ) value "#hex|slug" olabilir → sadece HEX'i uygula
+      if (el.value) { const hx = getHex(el.value); setPickedColor(hx); applyTheme(hx) }
+
+      const onChange = (e) => {
+        const hx = getHex(e.target.value)
+        setPickedColor(hx)
+        applyTheme(hx)
+      }
+      el.addEventListener('change', onChange)
+      return () => el.removeEventListener('change', onChange)
     }
-    setPaletteMount(slot);
 
-    // ilk değer varsa temayı uygula
-    if (el.value) { setPickedColor(el.value); applyTheme(el.value); }
+    let cleanup = placeSlot()
+    const mo = new MutationObserver(() => { cleanup && cleanup(); cleanup = placeSlot() })
+    const host = generatorRef.current
+    if (host) mo.observe(host, { childList: true, subtree: true })
+    return () => { mo.disconnect(); cleanup && cleanup() }
+  }, [schema, step])
 
-    const onChange = (e) => { setPickedColor(e.target.value); applyTheme(e.target.value); };
-    el.addEventListener('change', onChange);
-    return () => el.removeEventListener('change', onChange);
-  };
+  // ---- Checkbox/Radio: id/label bağla (benzersiz) ----
+  
+  useEffect(() => {
+    const root = generatorRef.current
+    if (!root) return
 
-  let cleanup = placeSlot();
+    const wire = () => {
+      const items = root.querySelectorAll(
+        '.custom-control.custom-checkbox, .custom-control.custom-radio, .checkbox, .radio'
+      )
+      const used = new Set()
 
-  const mo = new MutationObserver(() => {
-    cleanup && cleanup();
-    cleanup = placeSlot();
-  });
-  const host = generatorRef.current;
-  if (host) mo.observe(host, { childList: true, subtree: true });
+      items.forEach((box) => {
+        const input = box.querySelector('input[type="checkbox"],input[type="radio"]')
+        const label =
+          box.querySelector('label.custom-control-label') || box.querySelector('label')
+        if (!input || !label) return
 
-  return () => { mo.disconnect(); cleanup && cleanup(); };
-}, [schema, step]);
+        if (!input.id || used.has(input.id)) {
+          input.id = `rfb-opt-${++idCounterRef.current}`
+        }
+        used.add(input.id)
+        if (label.getAttribute('for') !== input.id) {
+          label.setAttribute('for', input.id)
+        }
+      })
+    }
+
+    wire()
+    const mo = new MutationObserver(wire)
+    mo.observe(root, { childList: true, subtree: true })
+    return () => mo.disconnect()
+  }, [schema, step])
+
+  // ---- Label tıklamasını doğru input’a yönlendir ----
+  useEffect(() => {
+    const root = generatorRef.current
+    if (!root) return
+
+    const onLabelClickCapture = (e) => {
+      const lbl = e.target.closest('label')
+      if (!lbl) return
+      const box = lbl.closest(
+        '.custom-control.custom-checkbox, .custom-control.custom-radio, .checkbox, .radio'
+      )
+      if (!box || !root.contains(box)) return
+
+      const input = box.querySelector('input[type="checkbox"],input[type="radio"]')
+      if (!input || input.disabled) return
+
+      e.preventDefault()
+      e.stopPropagation()
+      if (input.type === 'checkbox') input.checked = !input.checked
+      else input.checked = true
+      input.dispatchEvent(new Event('input',  { bubbles: true }))
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+    }
+
+    root.addEventListener('click', onLabelClickCapture, true)
+    return () => root.removeEventListener('click', onLabelClickCapture, true)
+  }, [schema, step])
+
+  // ---- Kartın tamamına tıkla → input toggle ----
+  useEffect(() => {
+    const root = generatorRef.current
+    if (!root) return
+
+    const onTileClick = (e) => {
+      if (e.target.matches('input[type="checkbox"],input[type="radio"]')) return
+      const box = e.target.closest(
+        '.custom-control.custom-checkbox, .custom-control.custom-radio, .checkbox, .radio'
+      )
+      if (!box || !root.contains(box)) return
+
+      const input = box.querySelector('input[type="checkbox"],input[type="radio"]')
+      if (!input || input.disabled) return
+
+      if (input.type === 'checkbox') input.checked = !input.checked
+      else input.checked = true
+      input.dispatchEvent(new Event('input',  { bubbles: true }))
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+    }
+
+    root.addEventListener('click', onTileClick)
+    return () => root.removeEventListener('click', onTileClick)
+  }, [schema, step])
 
   /* ---- Palette tıklandığında dropdown’u da güncelle ---- */
   const handlePick = (hex) => {
-  const root = generatorRef.current || document;
-  const el = findFavControl(root, 'fav_color'); // <— AYNI BULUCU
-  setPickedColor(hex);
-  applyTheme(hex); // tema anında değişsin
+    const root = generatorRef.current || document
+    const el = findFavControl(root, 'fav_color')
+    setPickedColor(hex)
+    applyTheme(hex)
+    if (!el) return
 
-  if (!el) return; // dropdown bulunamadıysa sadece tema değişir
+    if (el.tagName === 'SELECT') {
+      // Seçeneği HEX'e göre bul (#xxxxxx veya #xxxxxx|slug)
+      const opts = Array.from(el.options)
+      let opt = opts.find((o) => getHex(o.value).toLowerCase() === hex.toLowerCase())
+      if (!opt) {
+        const label = (colors.find(c => c.value.toLowerCase() === hex.toLowerCase())?.text) || hex
+        const val = makeVal(hex, label)
+        opt = new Option(label, val, true, true)
+        el.add(opt)
+        el.value = val
+      } else {
+        el.value = opt.value
+        opt.selected = true
+      }
+    } else {
+      el.value = hex
+    }
 
-  // Değeri ata
-  if (el.tagName === 'SELECT') {
-    // select içinde o değer yoksa bile RFB genelde options'ta var — yine de atayalım
-    el.value = hex;
-  } else {
-    el.value = hex;
+    // RFB state’ini güncelle
+    el.dispatchEvent(new Event('input',  { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    setTimeout(() => el.dispatchEvent(new Event('blur', { bubbles: true })), 0)
   }
-
-  // RFB'nin state'ini tetikle: hem input hem change gönder
-  el.dispatchEvent(new Event('input',  { bubbles: true }));
-  el.dispatchEvent(new Event('change', { bubbles: true }));
-};
 
   /* ---- Meslek & Üniversite listeleri ---- */
   const JOBS = [
-    'Yazılım Geliştirici',
-    'Veri Analisti',
-    'Tasarımcı',
-    'Ürün Yöneticisi',
-    'Satış Uzmanı',
-    'Öğretmen',
-    'Doktor',
-    'Hemşire',
-    'Makine Mühendisi',
-    'Elektrik Mühendisi',
-    'Muhasebeci',
-    'Pazarlama Uzmanı',
-    'Avukat',
-    'Mimar',
-    'İK Uzmanı',
-    'Operasyon Uzmanı',
-    'Destek Uzmanı',
-    'Teknisyen',
-    'Şoför',
-    'Esnaf'
+    'Yazılım Geliştirici','Veri Analisti','Tasarımcı','Ürün Yöneticisi','Satış Uzmanı','Öğretmen',
+    'Doktor','Hemşire','Makine Mühendisi','Elektrik Mühendisi','Muhasebeci','Pazarlama Uzmanı',
+    'Avukat','Mimar','İK Uzmanı','Operasyon Uzmanı','Destek Uzmanı','Teknisyen','Şoför','Esnaf'
   ]
   const UNIVERSITIES = [
-    'İstanbul Üniversitesi',
-    'İstanbul Teknik Üniversitesi',
-    'Boğaziçi Üniversitesi',
-    'Yıldız Teknik Üniversitesi',
-    'Marmara Üniversitesi',
-    'Galatasaray Üniversitesi',
-    'Koç Üniversitesi',
-    'Sabancı Üniversitesi',
-    'Bilkent Üniversitesi',
-    'ODTÜ',
-    'Hacettepe Üniversitesi',
-    'Ankara Üniversitesi',
-    'Ege Üniversitesi',
-    'Dokuz Eylül Üniversitesi',
-    'Gebze Teknik Üniversitesi',
-    'Sakarya Üniversitesi',
-    'Uludağ Üniversitesi',
-    'Karadeniz Teknik Üniversitesi',
-    'Atatürk Üniversitesi',
-    'Çukurova Üniversitesi',
-    'Akdeniz Üniversitesi',
-    'İnönü Üniversitesi'
+    'İstanbul Üniversitesi','İstanbul Teknik Üniversitesi','Boğaziçi Üniversitesi','Yıldız Teknik Üniversitesi',
+    'Marmara Üniversitesi','Galatasaray Üniversitesi','Koç Üniversitesi','Sabancı Üniversitesi','Bilkent Üniversitesi',
+    'ODTÜ','Hacettepe Üniversitesi','Ankara Üniversitesi','Ege Üniversitesi','Dokuz Eylül Üniversitesi',
+    'Gebze Teknik Üniversitesi','Sakarya Üniversitesi','Uludağ Üniversitesi','Karadeniz Teknik Üniversitesi',
+    'Atatürk Üniversitesi','Çukurova Üniversitesi','Akdeniz Üniversitesi','İnönü Üniversitesi'
   ]
 
   /* ---- Submit ---- */
   const onSubmit = async (answers) => {
     try {
       const arr = normalizeToArray(answers)
+
+      // Email’i bul ve doğrula (UI required’a ek güvenlik katmanı)
+      const email = (arr.find(a => String(a.name || '').toLowerCase().includes('mail')) || {}).value
+      const emailOk = typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      if (!emailOk) {
+        alert('Lütfen geçerli bir e-posta adresi girin.')
+        return
+      }
+
       const extra = [
         { name: 'first_name', value: firstName || null },
         { name: 'last_name', value: lastName || null },
@@ -325,9 +442,7 @@ export default function RenderPage() {
         employment === 'student' ? { name: 'university', value: university || null } : null
       ].filter(Boolean)
 
-      // JSON cleanup (undefined’ları at)
       const payload = JSON.parse(JSON.stringify([...arr, ...extra]))
-
       await axios.post(`${API}/api/forms/${id}/submissions`, { payload })
       setOk(true)
     } catch (e) {
@@ -341,9 +456,7 @@ export default function RenderPage() {
     return (
       <div className="center-wrap">
         <div className="card form-card">
-          <div className="card-head">
-            <h3>Yükleniyor…</h3>
-          </div>
+          <div className="card-head"><h3>Yükleniyor…</h3></div>
         </div>
       </div>
     )
@@ -351,9 +464,7 @@ export default function RenderPage() {
     return (
       <div className="center-wrap">
         <div className="card form-card">
-          <div className="card-head">
-            <h3>Hata</h3>
-          </div>
+          <div className="card-head"><h3>Hata</h3></div>
           <p>{err}</p>
         </div>
       </div>
@@ -362,9 +473,7 @@ export default function RenderPage() {
     return (
       <div className="center-wrap">
         <div className="card form-card">
-          <div className="card-head">
-            <h3>Form bulunamadı</h3>
-          </div>
+          <div className="card-head"><h3>Form bulunamadı</h3></div>
         </div>
       </div>
     )
@@ -373,12 +482,10 @@ export default function RenderPage() {
     return (
       <div className="center-wrap">
         <section className="card form-card" style={{ textAlign: 'center' }}>
-          <div className="success-ico">
-            <i className="fa fa-check-circle" />
-          </div>
-          <h2>Başarıyla gönderildi </h2>
-          <p>{firstName || lastName ? `Teşekkürler ${firstName} ${lastName}! ` : ''}Zaman Ayırdığınız için teşekkürler.</p>
-          <p>Hoşça kalın </p>
+          <div className="success-ico"><i className="fa fa-check-circle" /></div>
+          <h2>Başarıyla gönderildi</h2>
+          <p>{firstName || lastName ? `Teşekkürler ${firstName} ${lastName}! ` : ''}Zaman ayırdığınız için teşekkürler.</p>
+          <p>Hoşça kalın</p>
         </section>
       </div>
     )
@@ -398,21 +505,11 @@ export default function RenderPage() {
             <h3 style={{ marginTop: 0 }}>Temel Bilgiler</h3>
             <div className="form-group">
               <label>Ad</label>
-              <input
-                className="form-control"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Adınız"
-              />
+              <input className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Adınız" />
             </div>
             <div className="form-group">
               <label>Soyad</label>
-              <input
-                className="form-control"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Soyadınız"
-              />
+              <input className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Soyadınız" />
             </div>
             <div className="actions" style={{ marginTop: 8 }}>
               <button className="btn primary" disabled={!canContinue} onClick={() => setStep(2)}>
@@ -429,9 +526,7 @@ export default function RenderPage() {
                   <div style={{ fontWeight: 700, fontSize: 18 }}>
                     Hoş geldin, {firstName} {lastName}!
                   </div>
-                  <div className="text-muted" style={{ fontSize: 13 }}>
-                   
-                  </div>
+                  <div className="text-muted" style={{ fontSize: 13 }} />
                 </div>
               </div>
             </div>
@@ -441,45 +536,20 @@ export default function RenderPage() {
               <h4 style={{ marginTop: 0 }}>Çalışıyor musunuz?</h4>
               <div className="inline-fields">
                 <label className="f-radio">
-                  <input
-                    type="radio"
-                    name="emp"
-                    value="work"
-                    checked={employment === 'work'}
-                    onChange={() => {
-                      setEmployment('work')
-                      setUniversity('')
-                    }}
-                  />
+                  <input type="radio" name="emp" value="work" checked={employment === 'work'}
+                    onChange={() => { setEmployment('work'); setUniversity('') }} />
                   <span>Çalışıyorum</span>
                 </label>
 
                 <label className="f-radio">
-                  <input
-                    type="radio"
-                    name="emp"
-                    value="student"
-                    checked={employment === 'student'}
-                    onChange={() => {
-                      setEmployment('student')
-                      setOccupation('')
-                    }}
-                  />
+                  <input type="radio" name="emp" value="student" checked={employment === 'student'}
+                    onChange={() => { setEmployment('student'); setOccupation('') }} />
                   <span>Öğrenciyim</span>
                 </label>
 
                 <label className="f-radio">
-                  <input
-                    type="radio"
-                    name="emp"
-                    value="none"
-                    checked={employment === 'none'}
-                    onChange={() => {
-                      setEmployment('none')
-                      setOccupation('')
-                      setUniversity('')
-                    }}
-                  />
+                  <input type="radio" name="emp" value="none" checked={employment === 'none'}
+                    onChange={() => { setEmployment('none'); setOccupation(''); setUniversity('') }} />
                   <span>Çalışmıyorum</span>
                 </label>
               </div>
@@ -487,17 +557,9 @@ export default function RenderPage() {
               {employment === 'work' && (
                 <div className="form-group" style={{ marginTop: 10 }}>
                   <label>Meslek</label>
-                  <select
-                    className="form-control"
-                    value={occupation}
-                    onChange={(e) => setOccupation(e.target.value)}
-                  >
+                  <select className="form-control" value={occupation} onChange={(e) => setOccupation(e.target.value)}>
                     <option value="">Seçiniz</option>
-                    {JOBS.map((j) => (
-                      <option key={j} value={j}>
-                        {j}
-                      </option>
-                    ))}
+                    {JOBS.map((j) => <option key={j} value={j}>{j}</option>)}
                   </select>
                 </div>
               )}
@@ -505,17 +567,9 @@ export default function RenderPage() {
               {employment === 'student' && (
                 <div className="form-group" style={{ marginTop: 10 }}>
                   <label>Üniversite</label>
-                  <select
-                    className="form-control"
-                    value={university}
-                    onChange={(e) => setUniversity(e.target.value)}
-                  >
+                  <select className="form-control" value={university} onChange={(e) => setUniversity(e.target.value)}>
                     <option value="">Seçiniz</option>
-                    {UNIVERSITIES.map((u) => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
+                    {UNIVERSITIES.map((u) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
               )}

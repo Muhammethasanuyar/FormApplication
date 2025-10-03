@@ -368,3 +368,312 @@ main.page:has(.render-center){
 .form-card .checkbox input[type="checkbox"]{
   position:static !important; margin:0 !important;
 }
+/* === Modern checkbox listesi (RFB Checkboxes) ====================== */
+
+/* Form grubundaki seçenekleri otomatik grid'e diz */
+.form-card .form-group:has(> .checkbox) {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+/* Her bir seçenek kutusu */
+.form-card .checkbox { 
+  margin: 0 !important;          /* grid ile aralığı gap yönetiyor */
+}
+
+/* Tüm label tıklanabilir alan olsun, içte boşluk bırakalım */
+.form-card .checkbox label {
+  display: flex;
+  align-items: center;
+  gap: 10px;                      /* kutu ile yazı arasını aç */
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, border-color .12s;
+}
+
+/* Checkbox boyutu ve renk */
+.form-card .checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin: 0;                     /* Bootstrap varsayılanını sıfırla */
+  accent-color: var(--brand);    /* destekleyen tarayıcılarda marka rengi */
+}
+
+/* Hover/focus/checked durumları */
+.form-card .checkbox label:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16,24,40,.06);
+}
+.form-card .checkbox label:focus-within {
+  box-shadow: 0 0 0 3px var(--brand-weak);
+}
+.form-card .checkbox label:has(input:checked) {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-weak);
+}
+/* === RFB Checkboxes: modern görünüm + Bootstrap override === */
+
+/* Bootstrap'ın label padding/absolute konumlandırmasını iptal et */
+.form-card .checkbox,
+.react-form-builder-preview .checkbox {
+  padding-left: 0 !important;
+  margin: 0 0 8px 0 !important;     /* seçenekler arası düşey boşluk */
+}
+
+/* Tüm label tıklanabilir alan olsun, kutu ile yazı arasına boşluk verelim */
+.form-card .checkbox label,
+.react-form-builder-preview .checkbox label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;             /* ← yazı, kutudan ayrılır */
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  cursor: pointer !important;
+  position: static !important;      /* Bootstrap’in relative’ini sıfırla */
+  transition: transform .12s, box-shadow .12s, border-color .12s !important;
+}
+
+/* Checkbox'un kendisi: Bootstrap absolute'ünü kapat */
+.form-card .checkbox input[type="checkbox"],
+.react-form-builder-preview .checkbox input[type="checkbox"] {
+  position: static !important;      /* critical */
+  margin: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+  accent-color: var(--brand);
+}
+
+/* Hover / focus / checked etkileri */
+.form-card .checkbox label:hover,
+.react-form-builder-preview .checkbox label:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16,24,40,.06);
+}
+.form-card .checkbox label:focus-within,
+.react-form-builder-preview .checkbox label:focus-within {
+  box-shadow: 0 0 0 3px var(--brand-weak);
+}
+.form-card .checkbox label:has(input:checked),
+.react-form-builder-preview .checkbox label:has(input:checked) {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-weak);
+}
+
+/* Ekran genişken 2 sütunlu düzen (mobilde tek sütun) */
+@media (min-width: 640px) {
+  .form-card .form-group .checkbox,
+  .react-form-builder-preview .form-group .checkbox {
+    display: inline-block !important;
+    width: calc(50% - 8px) !important;
+    vertical-align: top !important;
+  }
+}
+/* ========= Bootstrap custom-control (checkbox/radio) düzeltmeleri ========= */
+/* Her bir seçenek kart gibi görünsün, kutu ile yazı arasına mesafe olsun */
+.form-card .form-group .custom-control,
+.react-form-builder-preview .form-group .custom-control {
+  position: relative !important;
+  display: block !important;
+  padding: 12px 12px 12px 44px !important;   /* ← solda kutu için boşluk */
+  margin: 0 0 10px 0 !important;
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  transition: transform .12s, box-shadow .12s, border-color .12s !important;
+}
+.form-card .form-group .custom-control:hover,
+.react-form-builder-preview .form-group .custom-control:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16,24,40,.06);
+}
+
+/* Label yazısı — tek satırda, tıklanabilir alan tamamı olsun */
+.custom-control-label {
+  display: block !important;
+  margin: 0 !important;
+  line-height: 1.35 !important;
+  cursor: pointer !important;
+}
+
+/* Kutu (Bootstrap'ın pseudo elementleri) konum/ölçü ayarı */
+.custom-control-label::before,
+.custom-control-label::after {
+  left: 12px !important;                /* ← kutuyu içe al */
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 4px !important;        /* köşeleri yumuşat */
+}
+
+/* Odak & seçili durumları tema ile uyumlu olsun */
+.custom-control-input:focus ~ .custom-control-label::before {
+  box-shadow: 0 0 0 3px var(--brand-weak) !important;
+}
+.custom-control-input:checked ~ .custom-control-label::before {
+  border-color: var(--brand) !important;
+  background-color: var(--brand) !important;
+}
+
+/* Metin ile kutu daha da ayrık görünsün (gerekiyorsa) */
+.custom-control-label { padding-left: 2px !important; }
+
+/* İki sütunlu düzen (geniş ekran) */
+@media (min-width: 640px) {
+  .form-card .form-group .custom-control,
+  .react-form-builder-preview .form-group .custom-control {
+    display: inline-block !important;
+    width: calc(50% - 8px) !important;
+    vertical-align: top !important;
+  }
+}
+/* === Checkbox / Radio modern düzen === */
+
+/* Konteyner: kart gibi ve yan yana içerik */
+.rfb-wrap .form-group .custom-control,
+.rfb-wrap .form-group .checkbox {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;                 /* ← kutu ile metin arası */
+  padding: 10px 12px !important;
+  margin: 0 0 10px 0 !important;
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+}
+
+/* Bootstrap’ın custom-control absolute/pseudo kutularını KAPAT */
+.custom-control-input {
+  position: static !important;          /* absolute değil */
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+  accent-color: var(--brand);           /* destekleyen tarayıcıda tema rengi */
+}
+.custom-control-label::before,
+.custom-control-label::after {
+  content: none !important;             /* pseudo kutuları kaldır */
+}
+
+/* Label tek satır, tıklanabilir */
+.custom-control-label,
+.rfb-wrap .form-group .checkbox label {
+  margin: 0 !important;
+  line-height: 1.35 !important;
+  cursor: pointer !important;
+  user-select: none;
+}
+
+/* İki sütun düzeni istenirse koru (geniş ekranda) */
+@media (min-width: 640px) {
+  .rfb-wrap .form-group .custom-control,
+  .rfb-wrap .form-group .checkbox {
+    display: inline-flex !important;
+    width: calc(50% - 8px) !important;
+    vertical-align: top !important;
+  }
+}
+/* === Checkbox / Radio modern düzen + yan yana === */
+
+/* BS3 `.checkbox` yapısı */
+.react-form-generator .checkbox,
+.form-card .checkbox { padding-left: 0 !important; }
+
+.react-form-generator .checkbox label,
+.form-card .checkbox label{
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;             /* kutu–metin arası */
+  padding: 12px !important;
+  margin: 0 0 10px 0 !important;
+  width: 100% !important;
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+}
+
+.react-form-generator .checkbox input[type="checkbox"],
+.form-card .checkbox input[type="checkbox"]{
+  position: static !important;      /* absolute değil */
+  margin: 0 !important;
+  width: 18px; height: 18px;
+  accent-color: var(--brand);
+}
+
+/* BS4 `.custom-control` yapısı */
+.react-form-generator .custom-control.custom-checkbox,
+.form-card .custom-control.custom-checkbox{
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 12px !important;
+  margin: 0 0 10px 0 !important;
+  background: #fff !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+}
+
+.react-form-generator .custom-control-input{
+  position: static !important;
+  margin: 0 !important;
+  width: 18px; height: 18px;
+  accent-color: var(--brand);
+}
+.react-form-generator .custom-control-label::before,
+.react-form-generator .custom-control-label::after{
+  display: none !important;         /* pseudo kutuları kapat */
+  content: none !important;
+}
+.react-form-generator .custom-control-label{ margin:0 !important; cursor:pointer !important; }
+/* RFB checkbox/radio: modern kutular, yazıdan ayrık, tüm kutu tıklanabilir */
+.generator-wrap .custom-control.custom-checkbox,
+.generator-wrap .custom-control.custom-radio,
+.generator-wrap .checkbox,
+.generator-wrap .radio{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  padding:10px !important;
+  margin:0 0 10px 0 !important;
+  background:#fff !important;
+  border:1px solid var(--line) !important;
+  border-radius:10px !important;
+  cursor:pointer !important;         /* ← tüm kart tıklanabilir */
+}
+
+.generator-wrap .custom-control-input,
+.generator-wrap .checkbox input[type="checkbox"],
+.generator-wrap .radio input[type="radio"]{
+  position:static !important;        /* BS absolute konumunu iptal et */
+  margin:0 !important;
+  width:18px; height:18px;
+  accent-color:var(--brand);
+  cursor:pointer;
+}
+
+.generator-wrap .custom-control-label,
+.generator-wrap .checkbox label,
+.generator-wrap .radio label{
+  margin:0 !important;
+  cursor:pointer !important;
+  line-height:1.2 !important;
+  display:block;                     /* BS3’teki inline kalıntıları temizle */
+}
+
+/* BS4 pseudo kutularını gizle — gerçek input’u kullanıyoruz */
+.generator-wrap .custom-control-label::before,
+.generator-wrap .custom-control-label::after{
+  display:none !important;
+  content:none !important;
+}
