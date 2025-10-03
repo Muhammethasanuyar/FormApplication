@@ -22,12 +22,14 @@ Modern Form Builder, React ve Node.js teknolojileri kullanılarak geliştirilmi�
 - **Form Şemaları**: JSON formatında esnek form yapıları
 - **Submission Takibi**: Gönderilen formları detaylı izleme
 - **Cascade Delete**: Form silindiğinde ilgili verilerin otomatik temizlenmesi
+- **Seed Verileri**: Hazır örnek formlar ve test verileri
 
 ### 🔧 Teknik Özellikler
 - **Modern Stack**: React 19, Node.js, Express, Prisma
-- **TypeScript Desteği**: Tip güvenliği ve geliştirici deneyimi
 - **Responsive Tasarım**: Mobil ve masaüstü uyumlu arayüz
 - **RESTful API**: Standart HTTP yöntemleri ile API tasarımı
+- **Database Seeding**: Otomatik örnek veri yükleme sistemi
+- **Email Integration**: Nodemailer ile otomatik bildirim sistemi
 
 ## 🛠️ Teknoloji Stack'i
 
@@ -120,6 +122,9 @@ npm run prisma:migrate
 # Prisma client'ı oluşturun
 npm run prisma:generate
 
+# Örnek verileri yükleyin (opsiyonel)
+npm run prisma:seed
+
 # Backend'i başlatın
 npm run dev
 ```
@@ -141,7 +146,12 @@ npm run dev
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:4000
 - **Prisma Studio**: `npm run prisma:studio` (http://localhost:5555)
-- **Örnek Form**: http://localhost:5173/forms/2 (Uygulama çalıştıktan sonra)
+
+### 5. Örnek Formları Görüntüle (Seed sonrası)
+- **Kullanıcı Kayıt**: http://localhost:5173/forms/1
+- **Etkinlik Kayıt**: http://localhost:5173/forms/2  
+- **Müşteri Geri Bildirim**: http://localhost:5173/forms/3
+- **İş Başvuru**: http://localhost:5173/forms/4
 
 ## 📋 API Endpoints
 
@@ -162,8 +172,22 @@ npm run dev
 
 ## 🎨 Kullanım Kılavuzu
 
-### Hızlı Başlangıç
-Uygulama çalıştıktan sonra doğrudan örnek formu görmek için: **http://localhost:5173/forms/2**
+### Hızlı Başlangıç (Seed Verileri ile)
+Seed verileri yüklendikten sonra hazır örnek formları görmek için:
+- **Kullanıcı Kayıt**: http://localhost:5173/forms/1
+- **Etkinlik Kayıt**: http://localhost:5173/forms/2  
+- **Müşteri Geri Bildirim**: http://localhost:5173/forms/3
+- **İş Başvuru**: http://localhost:5173/forms/4
+
+### 🌱 Seed Verileri
+Proje 4 farklı örnek form ile birlikte gelir:
+
+1. **Kullanıcı Kayıt Formu** - Temel kullanıcı bilgileri toplar
+2. **Etkinlik Kayıt Formu** - Etkinlik katılımcı kayıtları için
+3. **Müşteri Geri Bildirim Formu** - Memnuniyet anketleri için  
+4. **İş Başvuru Formu** - İnsan kaynakları süreçleri için
+
+Her form için örnek submission verileri de dahildir.
 
 ### Form Oluşturma
 1. Ana sayfada "Örnek Form Oluştur" butonuna tıklayın
@@ -211,6 +235,8 @@ npm start            # Production mode
 npm run prisma:studio    # Veritabanı yönetim arayüzü
 npm run prisma:migrate   # Yeni migrasyon çalıştır
 npm run prisma:generate  # Prisma client güncelle
+npm run prisma:seed      # Örnek verileri yükle
+npm run db:reset         # Veritabanını sıfırla ve seed yükle
 ```
 
 ### Frontend
@@ -245,6 +271,24 @@ CREATE TABLE Submission (
 );
 ```
 
+## 🌱 Database Seeding
+
+Proje otomatik örnek veri yükleme sistemi ile birlikte gelir:
+
+```bash
+# Seed verilerini yükle
+npm run prisma:seed
+
+# Veritabanını sıfırla ve seed yükle
+npm run db:reset
+```
+
+**Seed içeriği:**
+- 4 farklı örnek form şeması
+- Her form için sample submission verileri
+- Renk paleti entegrasyonu
+- Türkçe içerik ve validasyonlar
+
 ## 🚀 Production Deployment
 
 ### Backend Deployment
@@ -264,6 +308,39 @@ CREATE TABLE Submission (
 DATABASE_URL="mysql://user:password@prod-host:3306/form_builder"
 PORT=4000
 NODE_ENV=production
+
+# Email Settings (Optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+MAIL_FROM="Form Builder <no-reply@yourdomain.com>"
+```
+
+## 🎯 Proje Özellikleri
+
+### ✅ Tamamlanan Özellikler
+- ✅ Sürükle-bırak form builder
+- ✅ Dinamik renk temaları (30+ renk)
+- ✅ Türkiye şehirleri entegrasyonu
+- ✅ Email bildirim sistemi
+- ✅ Responsive tasarım
+- ✅ Database seed yapısı
+- ✅ Form validation
+- ✅ Multi-step formlar
+- ✅ JSON schema export/import
+
+### 🔄 Geliştirme Aşamasında
+- 🔄 TypeScript entegrasyonu
+- 🔄 Unit testler
+- 🔄 Form analytics
+- 🔄 Advanced form components
+
+### 🎯 Gelecek Özellikler
+- 📋 Form templates marketplace
+- 📊 Advanced reporting
+- 🔐 User authentication
+- 📱 Mobile app
 
 
 ## 📞 İletişim
